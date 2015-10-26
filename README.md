@@ -2,13 +2,17 @@
 A Mental Health App to help keep track of Moods
 
 #Known Issues:
-	App does not Save State between uses
-	The History Log needs to Format in a Pretty Way when viewed by User 
+	Delete Single History Log Item Deletes Entire File
 	Is there a way to not use Globals?
-	The Quote of the day Function is not yet pulling random quotes from a text file (does it make more sense to do this via a JSON Dump or a Dict/List in main.py
+	The Quote of the day Function is not yet pulling random quotes from a text file (This may be solved via a Database or JSON read)
+	Colorama is Generating a Weird Bug where numbers are being output in Windows 8 Terminal.  Colorama code has been removed for now
 
-#Possible Features To Introduce:
-	User Profiles?
-	More specific Behavior Tracking
-	Anxiety Management Tips that are extensible by the user?  (Allows the user can add in their own "This is something I've found useful/that should be used in this situation")
-	List of External Mental Health Resources that pulls from a text file, or from the web.  (It could Try grabbing the text file from the web first, and then if that doesn't work, pull the local text file)
+#Upcoming Features:
+	SQLite Databse for storing & sorting by Logs, Quotes, Moods, Intensity, Etc
+	Flask App with User Profiles & Passwords	
+	Sort by Mood
+	Anxiety Management Tips & Strategies.  Static & Interactive
+	List of External Mental Health Resources.  Either in Databse, or External Link (less maintenance)
+	In delete_history() & delete_log_entry() - add Undo Feature
+	Log displays in "Newest Date First" Fashion
+
