@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 
 #Note: Replace String Queries with Variables for Security Reasons
 #Add an Undo Delete Function - This would involve a backup Database
@@ -15,27 +15,60 @@ con = lite.connect('mood_history.sqlite')
 
 date = "10/7/15" #Note: There are Python Modules to pull the Date & Time 
 time = "6pm"
+    
+
+def create_mood_history_log_db(con,cur):
+    """Creates the database if it doesn't already exist"""
+
+    con.execute('''CREATE TABLE IF NOT EXISTS MOOD_HISTORY_LOG (ID INTEGER PRIMARY KEY AUTOINCREMENT,
+        LOG_DATE TEXT NOT NULL,
+        MOOD TEXT NOT NULL,
+        INTENSITY INT NOT NULL,
+        NOTES TEXT NOT NULL);''')
+    con.execute('''CREATE TABLE IF NOT EXISTS QUOTES (ID INTEGER PRIMARY KEY AUTOINCREMENT, 
+        QUOTE TEXT NOT NULL,
+        AUTHOR TEXT NOT NULL);''')
+
+
+def create_mood_history_backup_db(con,cur):
+    """Creates a Backup Table to prevent data loss.  Allows the user to undo accidental deletes"""
+
+    con.execute('''CREATE TABLE IF NOT EXISTS MOOD_HISTORY_LOG_BACKUP (ID INTEGER PRIMARY KEY AUTOINCREMENT,
+        LOG_DATE TEXT NOT NULL,
+        MOOD TEXT NOT NULL,
+        INTENSITY INT NOT NULL,
+        NOTES TEXT NOT NULL);''')
 
 
 def menu():
     """Main Menu"""
+
+    menu_dict = {
+        '1': log_mood,
+        '2': view_history,
+        '3': quote_of_the_day,
+        '4': delete_log_entry,
+        '5': delete_entire_history,
+        '6': quit
+    }
+
     menu_choice = input("1.  Log Your Mood \n2.  View Your History \n3.  Quote of the Day \n4.  Delete Log Entry \n5.  Delete Entire History \n6.  Quit\n\n")
+    
+    # Figure out how to make this work with **kwargs 
+    # So I don't have to global date/time in log_mood()
+    try:
+        menu_dict[menu_choice]()
+    except KeyError:
+        print("Please pick a valid option")
+        menu()
 
-    if menu_choice == "1":
-        log_mood(date, time)
-    elif menu_choice == "2":
-        view_history()
-    elif menu_choice == "3":
-        quote_of_the_day()
-    elif menu_choice =="4":
-        delete_log_entry()
-    elif menu_choice =="5":
-        delete_entire_history()
-    elif menu_choice == "6":
-        quit()
-
-def log_mood(date, time):
+def log_mood():
     """Logs the User's Mood & Saves to Database"""
+    
+    """ Date & Time are called as globals in order to make 
+        menu_dispatch() possible.  Previously, they were passed in via menu()  
+        This is experimental"""
+    global date, time 
     print("") #Spacing
 
     mood = input("What is your Mood?\n")
@@ -79,13 +112,16 @@ def delete_log_entry():
     #This doesn't adjust the numbers in ID - I may just have to live with that ...
 
     print("")
-    log_number_to_delete = int(input('Enter the number of the Log you wish to delete.  If you don\'t know the number, press "v" to View log, or "m" for Main Menu \n\n'))
+    log_number_to_delete = input('Enter the number of the Log you wish to delete.  If you don\'t know the number, press "v" to View log, or "m" for Main Menu \n\n')
+    
     # log_number_to_delete = int(log_number_to_delete)
     if log_number_to_delete == "v":
         view_history()
     elif log_number_to_delete == "m":
-        pass
+        pass #returns to main menu
+
     else:
+        log_number_to_delete = int(log_number_to_delete)
         cur.execute("SELECT * FROM MOOD_HISTORY_LOG")
         for row in cur:
             cur.execute("DELETE FROM MOOD_HISTORY_LOG WHERE ID=?;", (log_number_to_delete,))
@@ -116,26 +152,18 @@ def quit():
 
 
 
+
+
 if __name__ == "__main__":
     con = lite.connect('mood_history.sqlite')
-
     cur = con.cursor()
-    con.execute('''CREATE TABLE IF NOT EXISTS MOOD_HISTORY_LOG (ID INTEGER PRIMARY KEY AUTOINCREMENT,
-        LOG_DATE TEXT NOT NULL,
-        MOOD TEXT NOT NULL,
-        INTENSITY INT NOT NULL,
-        NOTES TEXT NOT NULL);''')
-    con.execute('''CREATE TABLE IF NOT EXISTS QUOTES (ID INTEGER PRIMARY KEY AUTOINCREMENT, 
-        QUOTE TEXT NOT NULL,
-        AUTHOR TEXT NOT NULL);''')
+
+    create_mood_history_log_db(con,cur)
+    create_mood_history_backup_db(con,cur)
 
     #This is here for Undo purposes
     #I'll need to find someway of highlighting the differences
-    con.execute('''CREATE TABLE IF NOT EXISTS MOOD_HISTORY_LOG_BACKUP (ID INTEGER PRIMARY KEY AUTOINCREMENT,
-        LOG_DATE TEXT NOT NULL,
-        MOOD TEXT NOT NULL,
-        INTENSITY INT NOT NULL,
-        NOTES TEXT NOT NULL);''')
+    
     print("\nHi!!  Welcome to the Friendly Mood Tracker :)\n" )
     print("What would you like to do? (Enter as Number)\n")
 
